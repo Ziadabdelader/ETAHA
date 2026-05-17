@@ -336,9 +336,10 @@ export default function CartPage() {
             <div className="space-y-4 mb-6">
               {cartItems.map((item) => (
                 <Card key={item.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      {/* Product Image */}
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
                         {item.product.image_url ? (
                           <img
                             src={item.product.image_url}
@@ -346,41 +347,53 @@ export default function CartPage() {
                             className="w-full h-full object-cover rounded-lg"
                           />
                         ) : (
-                          <Package className="h-12 w-12 text-muted-foreground" />
+                          <Package className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground" />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg text-foreground">{item.product.name}</h3>
-                        <p className="text-2xl font-bold text-primary mt-1">
+                      
+                      {/* Product Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base sm:text-lg text-foreground truncate">{item.product.name}</h3>
+                        <p className="text-xl sm:text-2xl font-bold text-primary mt-1">
                           {formatCurrency(item.product.price)}
                         </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {t('cart.total')}: {formatCurrency(item.product.price * item.quantity)}
+                        </p>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      
+                      {/* Quantity Controls and Delete */}
+                      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                        <div className="flex items-center space-x-2 bg-muted/50 rounded-lg p-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="w-8 text-center font-semibold text-sm">{item.quantity}</span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            disabled={item.quantity >= item.product.stock_quantity}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                         <Button
                           size="icon"
-                          variant="outline"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          disabled={item.quantity <= 1}
+                          variant="ghost"
+                          className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => removeItem(item.id)}
                         >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="w-12 text-center font-semibold">{item.quantity}</span>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          disabled={item.quantity >= item.product.stock_quantity}
-                        >
-                          <Plus className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        onClick={() => removeItem(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
