@@ -7,9 +7,11 @@ import Link from 'next/link';
 import { ShoppingCart, Wrench, Package, Users } from 'lucide-react';
 import { SiteNavbar } from '@/components/site-navbar';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/lib/auth-context';
 
 export default function Home() {
   const { t } = useTranslation();
+  const { user, loading } = useAuth();
 
   const scrollToBottom = () => {
     const start = window.pageYOffset;
@@ -97,9 +99,9 @@ export default function Home() {
 
       {/* BUTTONS - Positioned relative to van at the end of the light beam */}
       <div className="absolute left-[15%] bottom-[16%] flex gap-2 md:gap-6 pointer-events-auto">
-        <Link href="/register">
+        <Link href={user ? "/dashboard" : "/register"}>
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 md:px-8 md:py-4 text-xs md:text-lg shadow-2xl rounded-lg md:rounded-xl whitespace-nowrap">
-            {t('home.getStarted')}
+            {user ? t('nav.dashboard') : t('home.getStarted')}
           </Button>
         </Link>
 
@@ -176,9 +178,9 @@ export default function Home() {
                 <li>{t('home.features.tracking.description')}</li>
               </ul>
 
-              <Link href="/register">
+              <Link href={user ? "/dashboard/parts" : "/register"}>
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  {t('home.getStarted')}
+                  {user ? t('nav.parts') : t('home.getStarted')}
                 </Button>
               </Link>
             </div>
@@ -205,9 +207,9 @@ export default function Home() {
                 <li>{t('maintenance.date')}</li>
               </ul>
 
-              <Link href="/register">
+              <Link href={user ? "/dashboard/maintenance" : "/register"}>
                 <Button variant="secondary">
-                  {t('maintenance.schedule')}
+                  {user ? t('maintenance.schedule') : t('maintenance.schedule')}
                 </Button>
               </Link>
             </div>
