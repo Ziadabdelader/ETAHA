@@ -101,7 +101,7 @@ export default function Home() {
       <div className="absolute left-[15%] bottom-[16%] flex gap-2 md:gap-6 pointer-events-auto">
         <Link href={user ? "/dashboard" : "/register"}>
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 md:px-8 md:py-4 text-xs md:text-lg shadow-2xl rounded-lg md:rounded-xl whitespace-nowrap">
-            {user ? t('nav.dashboard') : t('home.getStarted')}
+            {t('home.getStarted')}
           </Button>
         </Link>
 
