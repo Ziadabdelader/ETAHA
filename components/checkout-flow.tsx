@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Check, ChevronLeft, ChevronRight, CreditCard, Wallet, MapPin, Package, CheckCircle2, Lock } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, CreditCard, Wallet, MapPin, Package, CheckCircle2, Lock, Plus, Minus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
 import { LocationPicker } from '@/components/location-picker';
@@ -115,6 +115,8 @@ interface CheckoutFlowProps {
       expiryYear: string;
     };
   }) => Promise<{ success: boolean; orderId?: string }>;
+  onUpdateQuantity?: (itemId: string, newQuantity: number) => Promise<void>;
+  onRemoveItem?: (itemId: string) => Promise<void>;
 }
 
 export function CheckoutFlow({
@@ -124,6 +126,8 @@ export function CheckoutFlow({
   addresses,
   onAddAddress,
   onPlaceOrder,
+  onUpdateQuantity,
+  onRemoveItem,
 }: CheckoutFlowProps) {
   const { t } = useTranslation();
   const [step, setStep] = useState(1);
@@ -397,22 +401,73 @@ export function CheckoutFlow({
                                 <Package className="h-8 w-8 text-muted-foreground" />
                               )}
                             </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{item.product.name}</h4>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold truncate">{item.product.name}</h4>
                               <p className="text-sm text-muted-foreground">
-                                {t('cart.quantity')}: {item.quantity}
+                                {formatCurrency(item.product.price)} {t('cart.each')}
                               </p>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-primary">
-                                {formatCurrency(item.product.price * item.quantity)}
-                              </p>
+                            <div className="flex items-center space-x-2">
+                              {onUpdateQuantity && (
+                                <>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-8 w-8"
+                                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                                    disabled={item.quantity <= 1}
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <span className="w-8 text-center font-semibold text-sm">{item.quantity}</span>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-8 w-8"
+                                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
+                              {!onUpdateQuantity && (
+                                <span className="text-sm text-muted-foreground">
+                                  {t('cart.quantity')}: {item.quantity}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-right flex items-center space-x-2">
+                              <div>
+                                <p className="font-bold text-primary">
+                                  {formatCurrency(item.product.price * item.quantity)}
+                                </p>
+                              </div>
+                              {onRemoveItem && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => onRemoveItem(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </CardContent>
                       </Card>
                     ))}
                   </div>
+                  <Card className="mt-4 bg-muted/50">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-semibold">{t('cart.total')}:</span>
+                        <span className="text-2xl font-bold text-primary">
+                          {formatCurrency(totalAmount)}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
 

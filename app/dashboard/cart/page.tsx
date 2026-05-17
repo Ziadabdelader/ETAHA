@@ -413,6 +413,12 @@ export default function CartPage() {
           addresses={addresses}
           onAddAddress={handleAddAddress}
           onPlaceOrder={handlePlaceOrder}
+          onUpdateQuantity={async (itemId: string, newQuantity: number) => {
+            await updateQuantity(itemId, newQuantity);
+          }}
+          onRemoveItem={async (itemId: string) => {
+            await removeItem(itemId);
+          }}
         />
       </div>
     </DashboardLayout>

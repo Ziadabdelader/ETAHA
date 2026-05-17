@@ -115,6 +115,7 @@
     "item": "Item",
     "price": "Price",
     "quantity": "Quantity",
+    "each": "each",
     "total": "Total",
     "subtotal": "Subtotal",
     "checkout": "Proceed to Checkout",
