@@ -255,11 +255,7 @@ export function CheckoutFlow({
     }
     if (step === 3) {
       if (paymentMethod === 'online') {
-        if (!onlineSubMethod) {
-          toast.error('Please select an online payment method');
-          return;
-        }
-        // Open Paymob modal immediately
+        // Open Paymob modal immediately (onlineSubMethod is auto-selected)
         setShowPaymobModal(true);
         return;
       }
@@ -388,68 +384,80 @@ export function CheckoutFlow({
                   <div className="space-y-2 sm:space-y-3 max-h-[250px] sm:max-h-[350px] overflow-y-auto">
                     {cartItems.map((item) => (
                       <Card key={item.id}>
-                        <CardContent className="p-3 sm:p-4">
-                          <div className="flex items-center space-x-2 sm:space-x-4">
-                            <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                              {item.product.image_url ? (
-                                <img
-                                  src={item.product.image_url}
-                                  alt={item.product.name}
-                                  className="w-full h-full object-cover rounded-lg"
-                                />
-                              ) : (
-                                <Package className="h-8 w-8 text-muted-foreground" />
-                              )}
+                        <CardContent className="p-2 sm:p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                            {/* Top row on mobile: Image + Name + Price */}
+                            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                                {item.product.image_url ? (
+                                  <img
+                                    src={item.product.image_url}
+                                    alt={item.product.name}
+                                    className="w-full h-full object-cover rounded-lg"
+                                  />
+                                ) : (
+                                  <Package className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-sm sm:text-base truncate">{item.product.name}</h4>
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                  {formatCurrency(item.product.price)} {t('cart.each')}
+                                </p>
+                              </div>
+                              <div className="sm:hidden flex-shrink-0">
+                                <p className="font-bold text-primary text-sm">
+                                  {formatCurrency(item.product.price * item.quantity)}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold truncate">{item.product.name}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                {formatCurrency(item.product.price)} {t('cart.each')}
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {onUpdateQuantity && (
-                                <>
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    className="h-8 w-8"
-                                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                                    disabled={item.quantity <= 1}
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </Button>
-                                  <span className="w-8 text-center font-semibold text-sm">{item.quantity}</span>
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    className="h-8 w-8"
-                                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </Button>
-                                </>
-                              )}
-                              {!onUpdateQuantity && (
-                                <span className="text-sm text-muted-foreground">
-                                  {t('cart.quantity')}: {item.quantity}
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-right flex items-center space-x-2">
-                              <div>
+                            
+                            {/* Bottom row on mobile: Quantity controls + Delete */}
+                            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                {onUpdateQuantity && (
+                                  <>
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      className="h-7 w-7 sm:h-8 sm:w-8"
+                                      onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                                      disabled={item.quantity <= 1}
+                                    >
+                                      <Minus className="h-3 w-3" />
+                                    </Button>
+                                    <span className="w-6 sm:w-8 text-center font-semibold text-xs sm:text-sm">{item.quantity}</span>
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      className="h-7 w-7 sm:h-8 sm:w-8"
+                                      onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                    </Button>
+                                  </>
+                                )}
+                                {!onUpdateQuantity && (
+                                  <span className="text-xs sm:text-sm text-muted-foreground">
+                                    {t('cart.quantity')}: {item.quantity}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <div className="hidden sm:block">
                                 <p className="font-bold text-primary">
                                   {formatCurrency(item.product.price * item.quantity)}
                                 </p>
                               </div>
+                              
                               {onRemoveItem && (
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                                   onClick={() => onRemoveItem(item.id)}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                                 </Button>
                               )}
                             </div>
@@ -574,7 +582,15 @@ export function CheckoutFlow({
                   <h3 className="text-lg font-semibold mb-1">{t('cart.checkoutFlow.paymentMethod')}</h3>
                   <p className="text-sm text-muted-foreground mb-4">All transactions are secure and encrypted.</p>
 
-                  <RadioGroup value={paymentMethod} onValueChange={(v: any) => { setPaymentMethod(v); if (v === 'cash') setOnlineSubMethod(''); }}>
+                  <RadioGroup value={paymentMethod} onValueChange={(v: any) => { 
+                    setPaymentMethod(v); 
+                    if (v === 'cash') {
+                      setOnlineSubMethod('');
+                    } else if (v === 'online') {
+                      // Auto-select the only available online payment method
+                      setOnlineSubMethod('paymob_wallet');
+                    }
+                  }}>
 
                     {/* ── Cash on Delivery ── */}
                     <Card
@@ -600,7 +616,7 @@ export function CheckoutFlow({
                     {/* ── Online Payment ── */}
                     <Card
                       className={`cursor-pointer transition-colors ${paymentMethod === 'online' ? 'border-primary bg-primary/5' : ''}`}
-                      onClick={() => setPaymentMethod('online')}
+                      onClick={() => { setPaymentMethod('online'); setOnlineSubMethod('paymob_wallet'); }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center space-x-3">
@@ -615,28 +631,17 @@ export function CheckoutFlow({
                           </div>
                         </div>
 
-                        {/* Sub-method list — shown when online is selected */}
+                        {/* Payment method info - shown when online is selected */}
                         {paymentMethod === 'online' && (
-                          <div className="mt-3 ml-7 space-y-2" onClick={(e) => e.stopPropagation()}>
-
-                            {/* Pay via Debit/Credit cards */}
-                            <div
-                              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${onlineSubMethod === 'paymob_wallet' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:bg-muted/40'}`}
-                              onClick={() => setOnlineSubMethod('paymob_wallet')}
-                            >
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${onlineSubMethod === 'paymob_wallet' ? 'border-primary' : 'border-muted-foreground'}`}>
-                                  {onlineSubMethod === 'paymob_wallet' && <div className="w-2 h-2 rounded-full bg-primary" />}
-                                </div>
-                                <span className="text-sm font-medium leading-tight">Pay via (Debit/Credit cards)</span>
-                              </div>
-                              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                          <div className="mt-3 ml-7">
+                            <div className="flex items-center justify-between p-3 rounded-lg border border-primary bg-primary/5">
+                              <span className="text-sm font-medium">Pay via Debit/Credit cards</span>
+                              <div className="flex items-center gap-1">
                                 <MastercardLogo />
                                 <VisaLogo />
                                 <MeezaLogo />
                               </div>
                             </div>
-
                           </div>
                         )}
                       </CardContent>
