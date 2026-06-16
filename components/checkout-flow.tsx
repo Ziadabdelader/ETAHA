@@ -339,9 +339,9 @@ export function CheckoutFlow({
   return (
     <>
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-[95vw] sm:max-w-4xl h-[90vh] sm:h-auto max-h-[90vh] overflow-y-auto p-3 sm:p-6 gap-3 sm:gap-4">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
+          <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-primary pr-6">
             {t('cart.checkout')}
           </DialogTitle>
         </DialogHeader>
@@ -380,16 +380,16 @@ export function CheckoutFlow({
             </div>
 
             {/* Step Content */}
-            <div className="min-h-[400px]">
+            <div className="min-h-[250px] sm:min-h-[350px]">
               {/* Step 1: Review Cart */}
               {step === 1 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold mb-4">{t('cart.checkoutFlow.reviewOrder')}</h3>
-                  <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                <div className="space-y-3 sm:space-y-4">
+                  <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">{t('cart.checkoutFlow.reviewOrder')}</h3>
+                  <div className="space-y-2 sm:space-y-3 max-h-[250px] sm:max-h-[350px] overflow-y-auto">
                     {cartItems.map((item) => (
                       <Card key={item.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center space-x-4">
+                        <CardContent className="p-3 sm:p-4">
+                          <div className="flex items-center space-x-2 sm:space-x-4">
                             <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
                               {item.product.image_url ? (
                                 <img
@@ -726,23 +726,27 @@ export function CheckoutFlow({
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t">
+            <div className="flex items-center justify-between pt-4 sm:pt-6 border-t mt-4 sm:mt-6 gap-2">
               <Button
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={step === 1}
+                size="sm"
+                className="text-xs sm:text-sm px-3 sm:px-4"
               >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                {t('cart.checkoutFlow.previous')}
+                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">{t('cart.checkoutFlow.previous')}</span>
+                <span className="xs:hidden">Back</span>
               </Button>
 
               {step < 4 ? (
-                <Button onClick={handleNext} disabled={savingAddress}>
-                  {t('cart.checkoutFlow.next')}
-                  <ChevronRight className="h-4 w-4 ml-2" />
+                <Button onClick={handleNext} disabled={savingAddress} size="sm" className="text-xs sm:text-sm px-3 sm:px-4">
+                  <span className="hidden xs:inline">{t('cart.checkoutFlow.next')}</span>
+                  <span className="xs:hidden">Next</span>
+                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
                 </Button>
               ) : (
-                <Button onClick={handlePlaceOrder} disabled={processing} size="lg">
+                <Button onClick={handlePlaceOrder} disabled={processing} size="sm" className="text-xs sm:text-base">
                   {processing ? t('cart.checkoutFlow.processing') : t('cart.checkoutFlow.confirmOrder')}
                 </Button>
               )}
@@ -750,19 +754,19 @@ export function CheckoutFlow({
           </>
         ) : (
           /* Success Screen */
-          <div className="text-center py-12">
-            <div className="w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+          <div className="text-center py-8 sm:py-12">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-2xl font-bold mb-2">{t('cart.checkoutFlow.orderSuccess')}</h3>
-            <p className="text-muted-foreground mb-6">
+            <h3 className="text-xl sm:text-2xl font-bold mb-2">{t('cart.checkoutFlow.orderSuccess')}</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 px-4">
               {t('cart.checkoutFlow.orderNumber')}: <span className="font-mono font-semibold">{orderId}</span>
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={() => (window.location.href = '/dashboard/orders')}>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+              <Button onClick={() => (window.location.href = '/dashboard/orders')} size="sm" className="text-sm sm:text-base w-full sm:w-auto">
                 {t('cart.checkoutFlow.viewOrders')}
               </Button>
-              <Button variant="outline" onClick={handleClose}>
+              <Button variant="outline" onClick={handleClose} size="sm" className="text-sm sm:text-base w-full sm:w-auto">
                 {t('cart.checkoutFlow.continueShopping')}
               </Button>
             </div>
@@ -773,7 +777,7 @@ export function CheckoutFlow({
 
     {/* ── Paymob-style payment modal ── */}
     <Dialog open={showPaymobModal} onOpenChange={(open) => { if (!open) setShowPaymobModal(false); }}>
-      <DialogContent className="max-w-sm p-0 overflow-hidden rounded-2xl bg-[#f5f5f5]">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-sm p-0 overflow-hidden rounded-2xl bg-[#f5f5f5]">
         <DialogHeader className="sr-only">
           <DialogTitle>Payment Details</DialogTitle>
         </DialogHeader>
