@@ -10,6 +10,12 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'ETAHA - Vehicle Parts & Maintenance',
   description: 'Quality vehicle parts and professional maintenance services',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
   openGraph: {
     images: [
       {

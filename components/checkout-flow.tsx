@@ -339,9 +339,9 @@ export function CheckoutFlow({
   return (
     <>
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-primary">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
             {t('cart.checkout')}
           </DialogTitle>
         </DialogHeader>
@@ -349,28 +349,28 @@ export function CheckoutFlow({
         {!orderSuccess ? (
           <>
             {/* Progress Steps */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6 sm:mb-8">
               {steps.map((s, index) => (
                 <div key={s.number} className="flex items-center flex-1">
                   <div className="flex flex-col items-center flex-1">
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${
+                      className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-colors ${
                         step >= s.number
                           ? 'bg-primary border-primary text-primary-foreground'
                           : 'border-border bg-background text-muted-foreground'
                       }`}
                     >
                       {step > s.number ? (
-                        <Check className="h-6 w-6" />
+                        <Check className="h-4 w-4 sm:h-6 sm:w-6" />
                       ) : (
-                        <s.icon className="h-6 w-6" />
+                        <s.icon className="h-4 w-4 sm:h-6 sm:w-6" />
                       )}
                     </div>
-                    <span className="text-xs mt-2 text-center hidden sm:block">{s.title}</span>
+                    <span className="text-[10px] sm:text-xs mt-1 sm:mt-2 text-center hidden xs:block">{s.title}</span>
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`h-0.5 flex-1 mx-2 transition-colors ${
+                      className={`h-0.5 flex-1 mx-1 sm:mx-2 transition-colors ${
                         step > s.number ? 'bg-primary' : 'bg-border'
                       }`}
                     />
