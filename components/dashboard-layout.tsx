@@ -103,7 +103,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center space-x-2">
               <PreferenceToggles />
               
-              <Link href="/dashboard/cart" className="hidden sm:inline-flex">
+              <Link href="/dashboard/cart">
                 <Button variant="outline" size="icon" className="relative border-black bg-transparent text-black hover:bg-white hover:text-black dark:border-white dark:text-white dark:hover:bg-accent dark:hover:text-accent-foreground">
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
