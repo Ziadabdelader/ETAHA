@@ -736,8 +736,8 @@ export function CheckoutFlow({
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={step === 1}
-                size="sm"
-                className="text-xs sm:text-sm px-3 sm:px-4"
+                size={step === 4 ? "default" : "sm"}
+                className={step === 4 ? "text-sm sm:text-base px-4 sm:px-6" : "text-xs sm:text-sm px-3 sm:px-4"}
               >
                 <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 <span className="hidden xs:inline">{t('cart.checkoutFlow.previous')}</span>
@@ -751,7 +751,7 @@ export function CheckoutFlow({
                   <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
                 </Button>
               ) : (
-                <Button onClick={handlePlaceOrder} disabled={processing} size="sm" className="text-xs sm:text-base">
+                <Button onClick={handlePlaceOrder} disabled={processing} size="default" className="text-sm sm:text-base px-4 sm:px-6">
                   {processing ? t('cart.checkoutFlow.processing') : t('cart.checkoutFlow.confirmOrder')}
                 </Button>
               )}
