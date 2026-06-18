@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/auth-context';
 import { ShoppingCart, Package, User, LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getGuestCartCount } from '@/lib/guest-cart';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,22 +25,25 @@ export function SiteNavbar() {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    if (user) {
+    loadCartCount();
+    
+    // Listen for cart updates
+    const handleCartUpdate = () => {
       loadCartCount();
-      
-      // Listen for cart updates
-      const handleCartUpdate = () => {
-        loadCartCount();
-      };
-      
-      window.addEventListener('cart-updated', handleCartUpdate);
-      return () => window.removeEventListener('cart-updated', handleCartUpdate);
-    }
+    };
+    
+    window.addEventListener('cart-updated', handleCartUpdate);
+    return () => window.removeEventListener('cart-updated', handleCartUpdate);
   }, [user]);
 
   const loadCartCount = async () => {
-    if (!user) return;
+    if (!user) {
+      // Guest user - get count from localStorage
+      setCartCount(getGuestCartCount());
+      return;
+    }
     
+    // Logged-in user - get count from database
     const { data, error } = await supabase
       .from('cart_items')
       .select('quantity', { count: 'exact' })
@@ -48,6 +52,8 @@ export function SiteNavbar() {
     if (!error && data) {
       const total = data.reduce((sum, item) => sum + item.quantity, 0);
       setCartCount(total);
+    }
+  };
     }
   };
 

@@ -26,6 +26,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { PreferenceToggles } from './preference-toggles';
 import { useTranslation } from 'react-i18next';
+import { getGuestCartCount } from '@/lib/guest-cart';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
@@ -35,9 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      loadCartCount();
-    }
+    loadCartCount();
   }, [user]);
 
   useEffect(() => {
@@ -54,10 +53,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [user]);
 
   const loadCartCount = async () => {
+    if (!user) {
+      // Guest user - get from localStorage
+      setCartCount(getGuestCartCount());
+      return;
+    }
+    
+    // Logged-in user - get from database
     const { data } = await supabase
       .from('cart_items')
       .select('quantity', { count: 'exact' })
-      .eq('user_id', user?.id);
+      .eq('user_id', user.id);
 
     if (data) {
       const total = data.reduce((sum, item) => sum + item.quantity, 0);

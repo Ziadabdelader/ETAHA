@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,14 @@ import { toast } from 'sonner';
 import { Loader as Loader2 } from 'lucide-react';
 import { SiteNavbar } from '@/components/site-navbar';
 import { useTranslation } from 'react-i18next';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { getGuestCart, clearGuestCart } from '@/lib/guest-cart';
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,11 +31,69 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
+      
+      // Merge guest cart with user cart
+      await mergeGuestCart();
+      
       toast.success(t('auth.login.success'));
+      
+      // Redirect based on query param
+      const redirect = searchParams.get('redirect');
+      if (redirect === 'cart') {
+        router.push('/dashboard/cart');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || t('auth.login.error'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const mergeGuestCart = async () => {
+    const guestCart = getGuestCart();
+    if (guestCart.length === 0) return;
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // For each guest cart item
+      for (const guestItem of guestCart) {
+        // Check if item already exists in user's cart
+        const { data: existing } = await supabase
+          .from('cart_items')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('product_id', guestItem.productId)
+          .maybeSingle();
+
+        if (existing) {
+          // Update quantity
+          await supabase
+            .from('cart_items')
+            .update({ quantity: existing.quantity + guestItem.quantity })
+            .eq('id', existing.id);
+        } else {
+          // Insert new item
+          await supabase
+            .from('cart_items')
+            .insert({
+              user_id: user.id,
+              product_id: guestItem.productId,
+              quantity: guestItem.quantity
+            });
+        }
+      }
+
+      // Clear guest cart
+      clearGuestCart();
+      window.dispatchEvent(new Event('cart-updated'));
+    } catch (error) {
+      console.error('Error merging guest cart:', error);
+      // Don't show error to user, cart merge is not critical
     }
   };
 

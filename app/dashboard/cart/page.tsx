@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Trash2, Plus, Minus, Package } from 'lucide-react';
 import { toast } from 'sonner';
+import { getGuestCart, updateGuestCartQuantity, removeFromGuestCart, clearGuestCart } from '@/lib/guest-cart';
 
 interface CartItem {
   id: string;
@@ -45,13 +46,12 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    } else if (user) {
-      loadCart();
+    // Load cart for both guest and logged-in users
+    loadCart();
+    if (user) {
       loadAddresses();
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     const handleCartUpdate = () => {
@@ -60,23 +60,58 @@ export default function CartPage() {
 
     window.addEventListener('cart-updated', handleCartUpdate);
     return () => window.removeEventListener('cart-updated', handleCartUpdate);
-  }, []);
+  }, [user]);
 
   const loadCart = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('cart_items')
-      .select(`
-        id,
-        quantity,
-        product:products!inner(id, name, price, stock_quantity, image_url)
-      `)
-      .eq('user_id', user?.id);
-
-    if (error) {
-      toast.error(t('cart.removeError'));
+    
+    if (!user) {
+      // Guest user - load from localStorage
+      const guestCart = getGuestCart();
+      if (guestCart.length === 0) {
+        setCartItems([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Fetch product details for guest cart items
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('id, name, price, stock_quantity, image_url')
+        .in('id', guestCart.map(item => item.productId));
+      
+      if (error || !products) {
+        toast.error(t('cart.removeError'));
+        setCartItems([]);
+      } else {
+        // Map guest cart to CartItem format
+        const items = guestCart.map(guestItem => {
+          const product = products.find(p => p.id === guestItem.productId);
+          return product ? {
+            id: guestItem.productId, // Use productId as id for guest cart
+            quantity: guestItem.quantity,
+            product
+          } : null;
+        }).filter(Boolean) as CartItem[];
+        
+        setCartItems(items);
+      }
     } else {
-      setCartItems(data as any || []);
+      // Logged-in user - load from database
+      const { data, error } = await supabase
+        .from('cart_items')
+        .select(`
+          id,
+          quantity,
+          product:products!inner(id, name, price, stock_quantity, image_url)
+        `)
+        .eq('user_id', user.id);
+
+      if (error) {
+        toast.error(t('cart.removeError'));
+      } else {
+        setCartItems(data as any || []);
+      }
     }
     setLoading(false);
   };
@@ -97,7 +132,7 @@ export default function CartPage() {
     if (newQuantity < 1) return;
 
     // Find the cart item to check stock
-    const cartItem = cartItems.find(item => item.id === itemId);
+    const cartItem = cartItems.find(item => item.id === itemId || item.product.id === itemId);
     if (!cartItem) return;
 
     // Check if new quantity exceeds stock
@@ -106,31 +141,49 @@ export default function CartPage() {
       return;
     }
 
-    const { error } = await supabase
-      .from('cart_items')
-      .update({ quantity: newQuantity })
-      .eq('id', itemId);
-
-    if (error) {
-      toast.error(t('cart.removeError'));
-    } else {
+    if (!user) {
+      // Guest user - update localStorage
+      updateGuestCartQuantity(cartItem.product.id, newQuantity);
       loadCart();
-      window.dispatchEvent(new Event('cart-updated'));
+    } else {
+      // Logged-in user - update database
+      const { error } = await supabase
+        .from('cart_items')
+        .update({ quantity: newQuantity })
+        .eq('id', itemId);
+
+      if (error) {
+        toast.error(t('cart.removeError'));
+      } else {
+        loadCart();
+        window.dispatchEvent(new Event('cart-updated'));
+      }
     }
   };
 
   const removeItem = async (itemId: string) => {
-    const { error } = await supabase
-      .from('cart_items')
-      .delete()
-      .eq('id', itemId);
+    const cartItem = cartItems.find(item => item.id === itemId || item.product.id === itemId);
+    if (!cartItem) return;
 
-    if (error) {
-      toast.error(t('cart.removeError'));
-    } else {
+    if (!user) {
+      // Guest user - remove from localStorage
+      removeFromGuestCart(cartItem.product.id);
       toast.success(t('cart.removeSuccess'));
       loadCart();
-      window.dispatchEvent(new Event('cart-updated'));
+    } else {
+      // Logged-in user - remove from database
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('id', itemId);
+
+      if (error) {
+        toast.error(t('cart.removeError'));
+      } else {
+        toast.success(t('cart.removeSuccess'));
+        loadCart();
+        window.dispatchEvent(new Event('cart-updated'));
+      }
     }
   };
 
@@ -308,8 +361,6 @@ export default function CartPage() {
     );
   }
 
-  if (!user) return null;
-
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto">
@@ -409,7 +460,14 @@ export default function CartPage() {
                   </span>
                 </div>
                 <Button
-                  onClick={() => setShowCheckout(true)}
+                  onClick={() => {
+                    if (!user) {
+                      // Guest user - redirect to login
+                      router.push('/login?redirect=cart');
+                    } else {
+                      setShowCheckout(true);
+                    }
+                  }}
                   className="w-full h-12 text-lg"
                 >
                   {t('cart.checkout')}
@@ -419,12 +477,13 @@ export default function CartPage() {
           </>
         )}
 
-        <CheckoutFlow
-          open={showCheckout}
-          onOpenChange={setShowCheckout}
-          cartItems={cartItems}
-          addresses={addresses}
-          onAddAddress={handleAddAddress}
+        {user && (
+          <CheckoutFlow
+            open={showCheckout}
+            onOpenChange={setShowCheckout}
+            cartItems={cartItems}
+            addresses={addresses}
+            onAddAddress={handleAddAddress}
           onPlaceOrder={handlePlaceOrder}
           onUpdateQuantity={async (itemId: string, newQuantity: number) => {
             await updateQuantity(itemId, newQuantity);

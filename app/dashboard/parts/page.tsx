@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Search, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { addToGuestCart } from '@/lib/guest-cart';
 
 interface Product {
   id: string;
@@ -44,12 +45,9 @@ export default function PartsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    } else if (user) {
-      loadData();
-    }
-  }, [user, authLoading, router]);
+    // Load data regardless of auth status
+    loadData();
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -85,12 +83,18 @@ export default function PartsPage() {
   };
 
   const addToCart = async (productId: string) => {
-    if (!user) return;
-
     // Get the product to check stock
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
+    // Guest user - use local storage
+    if (!user) {
+      addToGuestCart(productId, 1);
+      toast.success(t('parts.addedToCart'));
+      return;
+    }
+
+    // Logged in user - use database
     const { data: existing } = await supabase
       .from('cart_items')
       .select('*')
@@ -148,8 +152,6 @@ export default function PartsPage() {
       </DashboardLayout>
     );
   }
-
-  if (!user) return null;
 
   return (
     <DashboardLayout>
