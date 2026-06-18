@@ -120,28 +120,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Button>
               </Link>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="hidden sm:inline-flex border-black bg-transparent text-black hover:bg-white hover:text-black dark:border-white dark:text-white dark:hover:bg-accent dark:hover:text-accent-foreground">
-                    <User className="h-5 w-5" />
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="hidden sm:inline-flex border-black bg-transparent text-black hover:bg-white hover:text-black dark:border-white dark:text-white dark:hover:bg-accent dark:hover:text-accent-foreground">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>{t('profile.title')}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/profile" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        {t('nav.profile')}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      {t('nav.logout')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="hidden sm:flex items-center gap-2">
+                  <Button asChild variant="outline" size="sm" className="border-black bg-transparent text-black hover:bg-white hover:text-black dark:border-white dark:text-white dark:hover:bg-accent dark:hover:text-accent-foreground">
+                    <Link href="/login">{t('nav.login')}</Link>
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>{t('profile.title')}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/profile" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      {t('nav.profile')}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {t('nav.logout')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <Button asChild size="sm" className="bg-white text-black hover:bg-white/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">
+                    <Link href="/register">{t('nav.register')}</Link>
+                  </Button>
+                </div>
+              )}
 
               {/* Mobile Menu */}
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -175,23 +186,43 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         )}
                       </Button>
                     </Link>
-                    <Link href="/dashboard/profile" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Settings className="h-4 w-4 mr-2" />
-                        {t('nav.profile')}
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-destructive"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        signOut();
-                      }}
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      {t('nav.logout')}
-                    </Button>
+                    
+                    {user ? (
+                      <>
+                        <Link href="/dashboard/profile" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start">
+                            <Settings className="h-4 w-4 mr-2" />
+                            {t('nav.profile')}
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-destructive"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            signOut();
+                          }}
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          {t('nav.logout')}
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start">
+                            <User className="h-4 w-4 mr-2" />
+                            {t('nav.login')}
+                          </Button>
+                        </Link>
+                        <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="default" className="w-full justify-start">
+                            <User className="h-4 w-4 mr-2" />
+                            {t('nav.register')}
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </SheetContent>
               </Sheet>
