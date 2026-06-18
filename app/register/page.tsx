@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,14 @@ import { toast } from 'sonner';
 import { Loader as Loader2 } from 'lucide-react';
 import { SiteNavbar } from '@/components/site-navbar';
 import { useTranslation } from 'react-i18next';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { getGuestCart, clearGuestCart } from '@/lib/guest-cart';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -63,11 +68,75 @@ export default function RegisterPage() {
 
     try {
       await signUp(email, password, fullName, phone);
+      
+      // Merge guest cart with user cart
+      await mergeGuestCart();
+      
       toast.success(t('auth.register.success'));
+      
+      // Redirect based on query param
+      const redirect = searchParams.get('redirect');
+      if (redirect === 'cart') {
+        router.push('/dashboard/cart');
+      } else if (redirect === 'maintenance') {
+        router.push('/dashboard/maintenance');
+      } else if (redirect === 'orders') {
+        router.push('/dashboard/orders');
+      } else if (redirect === 'requests') {
+        router.push('/dashboard/requests');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || t('auth.register.error'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const mergeGuestCart = async () => {
+    const guestCart = getGuestCart();
+    if (guestCart.length === 0) return;
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // For each guest cart item
+      for (const guestItem of guestCart) {
+        // Check if item already exists in user's cart
+        const { data: existing } = await supabase
+          .from('cart_items')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('product_id', guestItem.productId)
+          .maybeSingle();
+
+        if (existing) {
+          // Update quantity
+          await supabase
+            .from('cart_items')
+            .update({ quantity: existing.quantity + guestItem.quantity })
+            .eq('id', existing.id);
+        } else {
+          // Insert new item
+          await supabase
+            .from('cart_items')
+            .insert({
+              user_id: user.id,
+              product_id: guestItem.productId,
+              quantity: guestItem.quantity
+            });
+        }
+      }
+
+      // Clear guest cart
+      clearGuestCart();
+      window.dispatchEvent(new Event('cart-updated'));
+    } catch (error) {
+      console.error('Error merging guest cart:', error);
+      // Don't show error to user, cart merge is not critical
     }
   };
 
@@ -174,7 +243,7 @@ export default function RegisterPage() {
               <p className="text-sm text-muted-foreground">
                 {t('auth.register.hasAccount')}{' '}
                 <Link
-                  href="/login"
+                  href={`/login${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`}
                   className="text-primary hover:text-primary/80 font-semibold transition-colors"
                 >
                   {t('auth.register.signIn')}
@@ -185,5 +254,24 @@ export default function RegisterPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+        <SiteNavbar />
+        <div className="flex items-center justify-center p-4 pt-20">
+          <Card className="w-full max-w-md shadow-xl">
+            <CardContent className="py-16 flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }

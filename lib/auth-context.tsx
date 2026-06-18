@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { useRouter } from 'next/navigation';
+import { clearGuestCart } from './guest-cart';
 
 interface AuthContextType {
   user: User | null;
@@ -69,6 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    
+    // Clear guest cart on logout to prevent old guest items from reappearing
+    clearGuestCart();
+    
     router.push('/');
   };
 

@@ -195,7 +195,7 @@ function LoginForm() {
               <p className="text-sm text-muted-foreground">
                 {t('auth.login.noAccount')}{' '}
                 <Link
-                  href="/register"
+                  href={`/register${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`}
                   className="text-primary hover:text-primary/80 font-semibold transition-colors"
                 >
                   {t('auth.login.signUp')}
