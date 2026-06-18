@@ -54,8 +54,6 @@ export function SiteNavbar() {
       setCartCount(total);
     }
   };
-    }
-  };
 
   return (
     <nav className="border-b bg-background">
