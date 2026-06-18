@@ -16,20 +16,19 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
+    // Allow both guest and logged-in users to view dashboard
+    // No redirect needed
   }, [user, loading, router]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
     );
   }
-
-  if (!user) return null;
 
   return (
     <DashboardLayout>
@@ -59,7 +58,13 @@ export default function DashboardPage() {
             </Card>
           </Link>
 
-          <Link href="/dashboard/maintenance">
+          <div onClick={() => {
+            if (!user) {
+              router.push('/login?redirect=maintenance');
+            } else {
+              router.push('/dashboard/maintenance');
+            }
+          }}>
             <Card className="border-2 border-primary hover:shadow-xl transition-all hover:scale-105 cursor-pointer h-full">
               <CardHeader className="pb-3 sm:pb-6">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-lg flex items-center justify-center mb-3 sm:mb-4">
@@ -76,11 +81,17 @@ export default function DashboardPage() {
                 </Button>
               </CardContent>
             </Card>
-          </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          <Link href="/dashboard/orders">
+          <div onClick={() => {
+            if (!user) {
+              router.push('/login?redirect=orders');
+            } else {
+              router.push('/dashboard/orders');
+            }
+          }}>
             <Card className="hover:shadow-lg transition-all cursor-pointer">
               <CardContent className="pt-4 sm:pt-6">
                 <div className="flex items-center gap-3 sm:gap-4">
@@ -94,9 +105,15 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
-          </Link>
+          </div>
 
-          <Link href="/dashboard/requests">
+          <div onClick={() => {
+            if (!user) {
+              router.push('/login?redirect=requests');
+            } else {
+              router.push('/dashboard/requests');
+            }
+          }}>
             <Card className="hover:shadow-lg transition-all cursor-pointer">
               <CardContent className="pt-4 sm:pt-6">
                 <div className="flex items-center gap-3 sm:gap-4">
@@ -110,7 +127,7 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
-          </Link>
+          </div>
         </div>
       </div>
     </DashboardLayout>

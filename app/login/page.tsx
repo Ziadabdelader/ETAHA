@@ -41,6 +41,12 @@ export default function LoginPage() {
       const redirect = searchParams.get('redirect');
       if (redirect === 'cart') {
         router.push('/dashboard/cart');
+      } else if (redirect === 'maintenance') {
+        router.push('/dashboard/maintenance');
+      } else if (redirect === 'orders') {
+        router.push('/dashboard/orders');
+      } else if (redirect === 'requests') {
+        router.push('/dashboard/requests');
       } else {
         router.push('/dashboard');
       }
