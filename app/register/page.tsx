@@ -20,10 +20,45 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { signUp } = useAuth();
+
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+  // Password validation: at least 8 characters, 1 uppercase, 1 lowercase, 1 number
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+
+  const validateEmail = (value: string) => {
+    if (!emailRegex.test(value)) {
+      setEmailError('Please enter a valid email address');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  const validatePassword = (value: string) => {
+    if (!passwordRegex.test(value)) {
+      setPasswordError('Password must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number');
+      return false;
+    }
+    setPasswordError('');
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate email and password
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    
+    if (!isEmailValid || !isPasswordValid) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -80,10 +115,15 @@ export default function RegisterPage() {
                   type="email"
                   placeholder={t('auth.register.emailPlaceholder')}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (e.target.value) validateEmail(e.target.value);
+                  }}
+                  onBlur={(e) => validateEmail(e.target.value)}
                   required
-                  className="h-11"
+                  className={`h-11 ${emailError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 />
+                {emailError && <p className="text-xs text-destructive">{emailError}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">{t('auth.register.phone')}</Label>
@@ -104,11 +144,16 @@ export default function RegisterPage() {
                   type="password"
                   placeholder={t('auth.register.passwordPlaceholder')}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (e.target.value) validatePassword(e.target.value);
+                  }}
+                  onBlur={(e) => validatePassword(e.target.value)}
                   required
-                  className="h-11"
-                  minLength={6}
+                  className={`h-11 ${passwordError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 />
+                {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
+                <p className="text-xs text-muted-foreground">At least 8 characters with 1 uppercase, 1 lowercase, and 1 number</p>
               </div>
               <Button
                 type="submit"
