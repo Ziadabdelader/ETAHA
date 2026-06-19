@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     });
     if (error) throw error;
-    router.push('/dashboard');
+    // Redirect is handled by the calling page
   };
 
   const signUp = async (email: string, password: string, fullName: string, phone: string) => {
@@ -63,8 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profileError) throw profileError;
     }
-
-    router.push('/dashboard');
+    // Redirect is handled by the calling page
   };
 
   const signOut = async () => {
